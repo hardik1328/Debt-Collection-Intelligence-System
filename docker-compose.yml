@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  contract-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: contract-intelligence-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DATABASE_URL=sqlite:///./data/db/contracts.db
+      - UPLOAD_DIR=./data/uploads
+      - CHROMADB_DIR=./data/chroma
+      - LLM_PROVIDER=local
+      - EMBEDDING_MODEL=all-MiniLM-L6-v2
+      - VECTOR_STORE_TYPE=chromadb
+      # Optional: Set these for OpenAI integration
+      # - OPENAI_API_KEY=your_key_here
+      # - MODEL_NAME=gpt-4-turbo-preview
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - contract-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/admin/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  contract-network:
+    driver: bridge
+
+volumes:
+  data:
+  logs:
